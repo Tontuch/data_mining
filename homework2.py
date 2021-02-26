@@ -4,22 +4,22 @@ import bs4
 from urllib.parse import urljoin
 from pathlib import Path
 import datetime
-
-class MagnitParse:
-    month = {
+month = {
         'янв' : 1,
         'фев': 2,
-        'март': 3,
+        'мар': 3,
         'апр' : 4,
         'мая' : 5,
         'июн' : 6,
         'июл' : 7,
-        'август' : 8,
-        'сентябр' : 9,
-        'октябр' : 10,
-        'ноябр' : 11,
-        'декабр' : 12
+        'авг' : 8,
+        'сен' : 9,
+        'окт' : 10,
+        'ноя' : 11,
+        'дек' : 12
     }
+class MagnitParse:
+
 
     def __init__(self, start_url, db_client):
         self.start_url = start_url
@@ -41,27 +41,28 @@ class MagnitParse:
 
     def get_template(self):
         return {
-            'title': lambda a: a.find('div', attrs={'class': 'card-sale__title'}).text,
+            'product_name': lambda a: a.find('div', attrs={'class': 'card-sale__title'}).text,
             'url': lambda a: urljoin(self.start_url, a.attrs.get('href', '')),
             'promo_name': lambda a: a.find('div', attrs={'class': 'card-sale__name'}).text,
             'old_price': lambda a: float('.'.join(a.find('div', attrs={'class': 'label__price_old'}).text.split())),
             'new_price': lambda a: float('.'.join(a.find('div', attrs={'class': 'label__price_new'}).text.split())),
             'image_url': lambda a: urljoin(self.start_url, a.find('img').attrs.get('data-src')),
-            'date_from': lambda a: self._get_date(a.find('div', attrs={'class': 'card-sale__date'}).text),
-            # 'date_to': 'pass',
+            'date_from': lambda a: self._get_date(a.find('div', attrs={'class': 'card-sale__date'}).text)[0],
+            'date_to': lambda a: self._get_date(a.find('div', attrs={'class': 'card-sale__date'}).text)[1],
         }
     def _get_date(self, temp_date):
-        date_parse = temp_date.replace('\n', ' ').replace('с', ' ').split('до')
+        pass
+        date_parse = temp_date.replace('\n', '').replace('с', '').split('до')
         date_period = []
         for date in date_parse:
-
-
-
-
-
-
-
-
+            try:
+                date_parse_temp = date.strip().split(' ')
+                date_parse_temp.append('2021')
+                temp_period = datetime.datetime(int(date_parse_temp[2]), month.get(date_parse_temp[1][:3]), int(date_parse_temp[0]))
+                date_period.append(temp_period)
+            except (AttributeError, ValueError):
+                pass
+        return date_period
 
 
     def _parse(self, product_a) -> dict:
